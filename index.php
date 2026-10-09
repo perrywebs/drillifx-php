@@ -23,9 +23,8 @@ try {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<?php if (site_favicon()): ?><link rel="icon" href="<?php echo e(site_favicon()); ?>"><?php endif; ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo e(site_name()); ?> - <?php echo e(site_tagline()); ?></title>
+<?php seo_head(['title' => site_name() . ' - ' . site_tagline(), 'description' => 'Create a free ' . site_name() . ' account to hash, spin and earn USDC rewards daily, and manage everything from your dashboard.', 'path' => '/']); ?>
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">

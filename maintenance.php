@@ -7,8 +7,8 @@ if (setting('maintenance_mode', '0') !== '1') redirect('/index.php');
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<?php if (site_favicon()): ?><link rel="icon" href="<?php echo e(site_favicon()); ?>"><?php endif; ?><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Maintenance - <?php echo e(site_name()); ?></title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<?php seo_head(['title' => 'Maintenance - ' . site_name(), 'description' => site_name() . ' is briefly unavailable while the platform is improved. Please check back shortly.', 'canonical' => false, 'index' => false]); ?>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <style>*{font-family:'Signika Negative',sans-serif}</style>
 </head>

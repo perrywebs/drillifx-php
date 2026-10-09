@@ -21,6 +21,8 @@ function current_admin(): ?array {
 
 // $roles: e.g. ['super_admin'] or ['super_admin','admin','finance']
 function require_admin(array $roles = []): array {
+    // Private area: keep admin pages out of search/social indexes.
+    if (!headers_sent()) header('X-Robots-Tag: noindex, nofollow', false);
     $a = current_admin();
     if (!$a) redirect(url('/admin/login.php') . '?next=' . urlencode($_SERVER['REQUEST_URI'] ?? url('/admin/')));
     if ($roles && !in_array($a['role'], $roles, true)) {

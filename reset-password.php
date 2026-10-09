@@ -35,8 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<?php if (site_favicon()): ?><link rel="icon" href="<?php echo e(site_favicon()); ?>"><?php endif; ?><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reset Password - <?php echo e(site_name()); ?></title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<?php seo_head(['title' => 'Reset Password - ' . site_name(), 'description' => 'Choose a new password for your ' . site_name() . ' account.', 'path' => '/reset-password.php']); ?>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>*{font-family:'Signika Negative',sans-serif}</style>

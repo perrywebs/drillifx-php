@@ -28,6 +28,8 @@ function current_user(): ?array {
 }
 
 function require_login(): array {
+    // Private area: keep user pages out of search/social indexes.
+    if (!headers_sent()) header('X-Robots-Tag: noindex, nofollow', false);
     $u = current_user();
     if (!$u) {
         $next = urlencode($_SERVER['REQUEST_URI'] ?? url('/users/dashboard.php'));

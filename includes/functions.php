@@ -195,3 +195,4 @@ function is_valid_email(string $email): bool {
 }
 
 require_once __DIR__ . '/settings.php';
+require_once __DIR__ . '/seo.php';

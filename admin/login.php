@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+// Private entry point: keep out of search/social indexes.
+if (!headers_sent()) header('X-Robots-Tag: noindex, nofollow', false);
 if (current_admin()) redirect('/admin/index.php');
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -18,11 +18,25 @@ DirectoryIndex index.php index.html index.htm
 # Custom "page not found" page (document-root installs)
 ErrorDocument 404 /404.php
 
+# Legacy fix: offline-mirror URLs like /login.php.html (leftover links from a
+# static site copy, possibly indexed by search engines) permanently redirect
+# to the canonical PHP page. GET/HEAD only: no form in this app ever posts to
+# a .php.html URL, so other methods correctly fall through to the 404 above.
+# The relative substitution keeps subdirectory installs working, and Apache
+# preserves the original query string automatically. Cannot loop: the target
+# ends in .php and no longer matches this pattern.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$
+    RewriteRule ^(.+\.php)\.html$ $1 [R=301,L]
+</IfModule>
+
 # Block direct access to code, settings and data directories
 RedirectMatch 403 ^/(includes|config|database)(/.*)?$
 
 # Never serve sensitive files: SQL dumps, logs, backups, archives,
-# offline-mirror leftovers and webcopy metadata
+# leftover .html mirrors (deleted from this project) and webcopy metadata.
+# Kept as defense-in-depth so a stray file is never served as a duplicate page.
 <FilesMatch "(\.log|\.sql|\.zip|\.htm[l]?|\.htaccess|\.htpasswd|webcopy-origin\.txt|3\.4\.17|css2)$">
     Require all denied
 </FilesMatch>

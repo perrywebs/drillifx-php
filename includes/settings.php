@@ -26,7 +26,8 @@ function site_logo(): string {
     return $l;
 }
 function site_favicon(): string {
-    $f = (string)(setting('site_favicon', '') ?: '');
+    // Default brand icon (real file); admins can override via Branding page.
+    $f = (string)(setting('site_favicon', '/images/favicon.png') ?: '/images/favicon.png');
     if ($f !== '' && strpos($f, '/') === 0 && strpos($f, '//') !== 0 && function_exists('url')) return url($f);
     return $f;
 }

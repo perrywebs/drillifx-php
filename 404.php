@@ -7,8 +7,7 @@ http_response_code(404);
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Page not found - <?php echo e(site_name()); ?></title>
-<?php if (site_favicon()): ?><link rel="icon" href="<?php echo e(site_favicon()); ?>"><?php endif; ?>
+<?php seo_head(['title' => 'Page not found - ' . site_name(), 'description' => 'The page you are looking for was moved or never existed.', 'canonical' => false, 'index' => false]); ?>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>*{font-family:'Signika Negative',sans-serif}</style>

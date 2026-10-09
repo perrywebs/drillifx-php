@@ -23,9 +23,8 @@ $from = $total ? $off + 1 : 0; $to = min($total, $off + $per);
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<?php if (site_favicon()): ?><link rel="icon" href="<?php echo e(site_favicon()); ?>"><?php endif; ?>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Top Earners - <?php echo e(site_name()); ?></title>
+<?php seo_head(['title' => 'Top Earners - ' . site_name(), 'description' => 'See the top ' . site_name() . ' earners ranked by total USDC earned.', 'path' => '/top-earners.php']); ?>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">

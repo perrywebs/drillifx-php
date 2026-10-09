@@ -67,6 +67,9 @@ SetEnv DB_NAME cpuser_drillifx
 SetEnv DB_USER cpuser_drillifx
 SetEnv DB_PASS "your-strong-password"
 SetEnv APP_URL https://yourdomain.com
+# Example production value for this site: https://nexoraspin.live
+# (APP_URL drives <link rel="canonical">, Open Graph / Twitter cards and
+# email links — always an absolute https URL, never localhost.)
 # Optional: SetEnv APP_BASE_PATH /subdir   (only for subdirectory installs)
 # Optional: SetEnv APP_DEBUG 1             (local debugging only, NEVER in prod)
 ```
@@ -125,8 +128,25 @@ transactional mail is logged as `skipped` in `email_logs` (nothing breaks).
 - **Uploads fail** → directory permissions; max 5 MB proofs
   (JPG/PNG/WEBP/PDF), 2 MB logos.
 
-## 9. PHP 8.1 compatibility notes
+## 9. Social sharing, favicon & legacy `.php.html` URLs
 
+- Share metadata (Open Graph + Twitter/X cards, canonical, favicon) is
+  emitted by `includes/seo.php` on all public pages. No per-page setup
+  needed — but `APP_URL` (§4) **must** be the public https domain or
+  previews will point at the wrong host.
+- Brand assets (all public, no login required):
+  `images/og-cover.png` (1200×630 social preview),
+  `images/favicon.png` (browser tab icon), `images/apple-touch-icon.png`.
+- Private areas (`/users/`, `/admin/`, `/ajax/`) send
+  `X-Robots-Tag: noindex, nofollow` and are disallowed in `robots.txt`.
+- Old indexed links like `/login.php.html` (left over from a static site
+  copy) get a permanent `301` redirect to the canonical `.php` URL via the
+  guarded rule in `.htaccess` (GET/HEAD only; query strings preserved).
+  Verify on the live host: `curl -I https://yourdomain.com/login.php.html`
+  should return `301` → `/login.php`; any other malformed path returns
+  the `404.php` page.
+
+## 10. PHP 8.1 compatibility notes
 No build step, no Composer, no 8.2+ syntax. All 61 PHP files pass
 `php -l`; PDO with exceptions + prepared statements throughout;
 sessions are cookie-only (`HttpOnly`, `SameSite=Lax`, `Secure` on HTTPS)

@@ -1,0 +1,571 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Top Earners - Drillifyx</title>
+    <script src="3.4.17"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Signika Negative', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Signika Negative', sans-serif; 
+            padding-bottom: 70px; 
+            background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
+            min-height: 100vh;
+        }
+        /* Removed gradient-header, now using clean white header */
+        .bottom-nav-item.active {
+            color: #2563eb;
+            background: linear-gradient(180deg, rgba(37, 99, 235, 0.1) 0%, transparent 100%);
+        }
+        .bottom-nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: #2563eb;
+            border-radius: 0 0 4px 4px;
+        }
+        /* Badge animation */
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .badge-pulse {
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+        /* Support icon spinning animation */
+        @keyframes spin-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .support-icon-spin {
+            animation: spin-slow 4s linear infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Redesigned header - clean white with subtle shadow -->
+    <header class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-40">
+        <div class="px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="index.php.html" class="flex items-center gap-2">
+                    <img src="images/usd-coin-usdc-logo.png" alt="USDC Core" class="w-8 h-8">
+                    <span class="text-lg font-bold text-gray-800">Drillifyx</span>
+                </a>
+                                <div class="flex items-center gap-2">
+                    <a href="login.php.html" class="text-sm font-medium text-gray-600 hover:text-blue-600 transition px-3 py-1.5">Login</a>
+                    <a href="register.php.html" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-1.5 rounded-xl transition">Register</a>
+                </div>
+                            </div>
+        </div>
+    </header>
+
+    
+    <main class="px-4 py-4">
+
+<!-- Redesigned header card matching dashboard style -->
+<div class="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-4 mb-4 text-white relative overflow-hidden">
+    <!-- Decorative circles -->
+    <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+    <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-6 -mb-6"></div>
+    
+    <div class="relative">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold">Top 100 Earners</h1>
+                <p class="text-blue-200 text-xs">Leaderboard Rankings</p>
+            </div>
+        </div>
+        
+        <!-- Quick Stats Row -->
+        <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="bg-white/10 rounded-xl p-2">
+                <p class="text-lg font-bold">100</p>
+                <p class="text-blue-200 text-[10px]">Total Earners</p>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2">
+                <p class="text-lg font-bold">$179,565</p>
+                <p class="text-blue-200 text-[10px]">Total Earned</p>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2">
+                <p class="text-lg font-bold">5</p>
+                <p class="text-blue-200 text-[10px]">Pages</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top 3 Podium Section -->
+
+<!-- Page Info -->
+<div class="flex items-center justify-between mb-2">
+    <h2 class="text-gray-700 font-semibold text-sm">All Rankings</h2>
+    <p class="text-xs text-gray-500">
+        41-60 of 100    </p>
+</div>
+
+<!-- Earners List matching dashboard card style -->
+<div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+            <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">41</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">Au***ra</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$1,492.83</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">42</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">Fa***Va</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$1,442.68</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">43</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">Sh***56</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$1,422.99</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">44</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">ap***01</p>
+            <p class="text-xs text-gray-500">Account Tier 4</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$1,300.00</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">45</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">or***ft</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$1,260.00</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">46</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">Wa***fx</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$1,022.87</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">47</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">mu***sm</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$1,022.79</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">48</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">Sa***34</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$1,020.00</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">49</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">Je***ze</p>
+            <p class="text-xs text-gray-500">Account Tier 1</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$902.83</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">50</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">ne***th</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$900.00</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">51</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">ze***ub</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$891.02</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">52</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">Wa***id</p>
+            <p class="text-xs text-gray-500">Free Tier</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$851.80</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">53</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">cr***ne</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$840.00</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">54</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">sw***a5</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$840.00</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">55</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">sh***om</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$810.00</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">56</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">co***te</p>
+            <p class="text-xs text-gray-500">Account Tier 3</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$810.00</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">57</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">Go***15</p>
+            <p class="text-xs text-gray-500">Account Tier 1</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$802.56</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">58</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">Ch***a1</p>
+            <p class="text-xs text-gray-500">Account Tier 1</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$741.62</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 border-b border-gray-100">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">59</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">El***ah</p>
+            <p class="text-xs text-gray-500">Account Tier 1</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$740.76</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        <div class="flex items-center gap-3 p-3 ">
+        <!-- Rank Badge -->
+                <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="font-semibold text-gray-500 text-sm">60</span>
+        </div>
+                
+        <!-- User Info -->
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">to***33</p>
+            <p class="text-xs text-gray-500">Account Tier 1</p>
+        </div>
+        
+        <!-- Balance -->
+        <div class="text-right flex-shrink-0">
+            <p class="font-bold text-green-600 text-sm">$740.18</p>
+            <p class="text-[10px] text-gray-400">Earned</p>
+        </div>
+    </div>
+        </div>
+
+<!-- Pagination matching dashboard style -->
+<div class="flex items-center justify-between gap-2 mb-4">
+        <a href="top-earners.php-1.html?page=2" class="flex-1 flex items-center justify-center gap-1 bg-white border border-gray-200 text-gray-700 py-2.5 px-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Previous
+    </a>
+        
+    <div class="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold text-sm">
+        3    </div>
+    
+        <a href="top-earners.php-4.html?page=4" class="flex-1 flex items-center justify-center gap-1 bg-white border border-gray-200 text-gray-700 py-2.5 px-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+        Next
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+    </a>
+    </div>
+
+<!-- CTA for non-logged in users -->
+<div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-4 text-center text-white mb-4 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-4 -mt-4"></div>
+    <div class="relative">
+        <h3 class="font-bold mb-1 text-sm">Want to be on this list?</h3>
+        <p class="text-blue-200 text-xs mb-3">Start earning USDC today and climb the leaderboard!</p>
+        <a href="register.php.html" class="inline-flex items-center gap-2 bg-white text-blue-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+            </svg>
+            Get Started Free
+        </a>
+    </div>
+</div>
+
+</main>
+
+    
+    <script>
+        // Modal functionality
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm z-50 shadow-lg ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

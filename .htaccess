@@ -1,0 +1,20 @@
+# Drillifx Apache configuration
+# (PHP's built-in server and nginx ignore this file; they serve the .php routes directly.)
+
+# No directory listings
+Options -Indexes
+
+# Custom "page not found" page
+ErrorDocument 404 /404.php
+
+# Block direct access to code, settings and data files
+RedirectMatch 403 ^/(includes|config|database)/.*$
+<FilesMatch "(\.log|\.sql|\.htaccess|\.htpasswd)$">
+    Require all denied
+</FilesMatch>
+
+# Never execute scripts from upload folders (defense in depth)
+<DirectoryMatch "^.*/uploads/.*">
+    php_flag engine off
+    AddHandler default-handler .php .phtml
+</DirectoryMatch>

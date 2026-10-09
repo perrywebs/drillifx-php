@@ -22,7 +22,7 @@ function current_admin(): ?array {
 // $roles: e.g. ['super_admin'] or ['super_admin','admin','finance']
 function require_admin(array $roles = []): array {
     $a = current_admin();
-    if (!$a) redirect('/admin/login.php?next=' . urlencode($_SERVER['REQUEST_URI'] ?? '/admin/'));
+    if (!$a) redirect(url('/admin/login.php') . '?next=' . urlencode($_SERVER['REQUEST_URI'] ?? url('/admin/')));
     if ($roles && !in_array($a['role'], $roles, true)) {
         http_response_code(403);
         exit('Forbidden: insufficient permissions.');

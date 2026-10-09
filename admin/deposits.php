@@ -54,7 +54,7 @@ foreach ($rows as $d) {
     echo '<p class="text-sm">' . e($d['tier_name']) . ' · $' . e(number_format((float)$d['amount'], 2)) . ' · <span class="text-slate-400">' . e(date('M d, Y g:i A', strtotime($d['created_at']))) . '</span></p>';
     if ($d['proof_path']) {
         $isPdf = strtolower(substr($d['proof_path'], -4)) === '.pdf';
-        echo '<p class="text-xs mt-2"><button onclick="openProof(\'/admin/proof.php?id=' . (int)$d['id'] . '\',' . ($isPdf ? 'true' : 'false') . ')" class="text-blue-600 font-semibold bg-blue-50 px-3 py-1.5 rounded-lg">View proof</button></p>';
+        echo '<p class="text-xs mt-2"><button onclick="openProof(\'' . e(url('/admin/proof.php?id=' . (int)$d['id'])) . '\',' . ($isPdf ? 'true' : 'false') . ')" class="text-blue-600 font-semibold bg-blue-50 px-3 py-1.5 rounded-lg">View proof</button></p>';
     } else echo '<p class="text-xs mt-2 text-slate-400">No proof uploaded.</p>';
     if ($d['admin_note']) echo '<p class="text-xs text-slate-500 mt-1">Note: ' . e($d['admin_note']) . '</p>';
     echo '</div><span class="text-xs font-bold px-2 py-1 rounded-full h-fit ' . ($d['status'] === 'pending' ? 'bg-yellow-100 text-yellow-700' : ($d['status'] === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')) . '">' . e($d['status']) . '</span></div>';

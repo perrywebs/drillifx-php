@@ -9,7 +9,7 @@ if (setting('maintenance_mode', '0') !== '1') redirect('/index.php');
 <meta charset="UTF-8">
 <?php if (site_favicon()): ?><link rel="icon" href="<?php echo e(site_favicon()); ?>"><?php endif; ?><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Maintenance - <?php echo e(site_name()); ?></title>
-<script src="3.4.17"></script>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <style>*{font-family:'Signika Negative',sans-serif}</style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-white to-blue-100 min-h-screen flex items-center justify-center p-4">

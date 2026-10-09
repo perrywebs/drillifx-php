@@ -331,7 +331,7 @@ $st = $pdo->prepare('SELECT * FROM activity_log WHERE user_id=? ORDER BY id DESC
                                 formData.append('activity_id', id);
                             }
 
-                            fetch('/users/notifications.php', {
+                            fetch((window.APP_BASE||'')+'/users/notifications.php', {
                                 method: 'POST',
                                 body: formData,
                                 headers: {

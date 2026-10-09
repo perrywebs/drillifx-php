@@ -21,9 +21,15 @@ function site_name(): string { return (string)(setting('site_name', 'Drillifyx')
 function site_tagline(): string { return (string)(setting('site_title', 'Hash & Earn USDC') ?: 'Hash & Earn USDC'); }
 function site_logo(): string {
     $l = (string)(setting('site_logo', '/images/usd-coin-usdc-logo.png') ?: '/images/usd-coin-usdc-logo.png');
+    // Stored paths are root-relative; prefix the subdirectory base when needed.
+    if (strpos($l, '/') === 0 && strpos($l, '//') !== 0 && function_exists('url')) return url($l);
     return $l;
 }
-function site_favicon(): string { return (string)(setting('site_favicon', '') ?: ''); }
+function site_favicon(): string {
+    $f = (string)(setting('site_favicon', '') ?: '');
+    if ($f !== '' && strpos($f, '/') === 0 && strpos($f, '//') !== 0 && function_exists('url')) return url($f);
+    return $f;
+}
 
 // Settings-aware business values (admin changes take effect immediately; config/app.php is fallback)
 function cfg_min_withdraw(): float { return (float)(setting('min_withdraw', app_config('min_withdraw') ?? 100) ?: 100); }

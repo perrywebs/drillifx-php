@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $vToken = bin2hex(random_bytes(32));
         $st = $pdo->prepare('INSERT INTO email_verify_tokens (user_id, token_hash, expires_at) VALUES (?,?,DATE_ADD(NOW(), INTERVAL 24 HOUR))');
         $st->execute([$uid, hash('sha256', $vToken)]);
-        $verifyLink = rtrim((string)app_config('app_url'), '/') . '/verify.php?token=' . $vToken;
+        $verifyLink = rtrim(app_base_url(), '/') . '/verify.php?token=' . $vToken;
         send_template($email, 'email_verify', user_email_vars($newUser, ['verify_link' => $verifyLink]), $uid);
     }
     login_user($uid);
@@ -75,9 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php if (site_favicon()): ?><link rel="icon" href="<?php echo e(site_favicon()); ?>"><?php endif; ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - <?php echo e(site_name()); ?></title>
-    <script src="3.4.17"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Signika Negative', sans-serif; }
         /* Added shake animation for validation errors */
@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Logo and Brand -->
         <div class="text-center mb-6">
             <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-lg mb-3">
-                <img src="<?php echo e(ltrim(site_logo(), '/')); ?>" alt="USDC" class="w-10 h-10">
+                <img src="<?php echo e(site_logo()); ?>" alt="USDC" class="w-10 h-10">
             </div>
             <h1 class="text-2xl font-bold text-gray-800"><?php echo e(site_name()); ?></h1>
             <p class="text-gray-500 text-sm">Create your account to get started</p>

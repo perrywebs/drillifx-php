@@ -72,6 +72,7 @@ function admin_sections(array $admin): array {
 function admin_head(string $title): void {
     echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">';
     echo '<title>' . e($title) . ' - ' . e(site_name()) . ' Admin</title>';
+    echo '<script>window.APP_BASE=' . json_encode(base_path()) . ';</script>';
     echo '<script src="https://cdn.tailwindcss.com"></script>';
     echo '<link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">';
     echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">';
@@ -90,12 +91,12 @@ function admin_sidebar(array $admin, string $active): void {
         foreach ($sec['items'] as [$key, $label, $icon, $href, $show]) {
             if (!$show) continue;
             $cls = 'navlink flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-600 hover:bg-slate-100' . ($key === $active ? ' active' : '');
-            echo '<a href="' . $href . '" class="' . $cls . '"><i class="fas ' . $icon . ' w-5 text-center"></i>' . e($label) . '</a>';
+            echo '<a href="' . e(url($href)) . '" class="' . $cls . '"><i class="fas ' . $icon . ' w-5 text-center"></i>' . e($label) . '</a>';
         }
         echo '</div>';
     }
     echo '</nav>';
-    echo '<div class="p-3 border-t border-slate-100"><a href="/admin/logout.php" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-red-600 hover:bg-red-50"><i class="fas fa-right-from-bracket w-5 text-center"></i>Logout</a></div>';
+    echo '<div class="p-3 border-t border-slate-100"><a href="' . e(url('/admin/logout.php')) . '" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-red-600 hover:bg-red-50"><i class="fas fa-right-from-bracket w-5 text-center"></i>Logout</a></div>';
     echo '</aside>';
     echo '<div class="md:hidden fixed top-0 inset-x-0 bg-white border-b border-slate-200 z-30 px-4 py-2 flex items-center justify-between">';
     echo '<span class="font-bold text-slate-800 text-sm">' . e(site_name()) . ' Admin</span>';
@@ -104,10 +105,10 @@ function admin_sidebar(array $admin, string $active): void {
         if ($sec['label']) echo '<p class="px-3 pt-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">' . e($sec['label']) . '</p>';
         foreach ($sec['items'] as [$key, $label, $icon, $href, $show]) {
             if (!$show) continue;
-            echo '<a href="' . $href . '" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100">' . e($label) . '</a>';
+            echo '<a href="' . e(url($href)) . '" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100">' . e($label) . '</a>';
         }
     }
-    echo '<a href="/admin/logout.php" class="block px-3 py-2 rounded-lg text-sm text-red-600">Logout</a></div></details></div>';
+    echo '<a href="' . e(url('/admin/logout.php')) . '" class="block px-3 py-2 rounded-lg text-sm text-red-600">Logout</a></div></details></div>';
     echo '<main class="flex-1 md:ml-60 p-4 md:p-6 pt-16 md:pt-6 max-w-6xl w-full">';
 }
 function admin_footer(): void {
@@ -172,7 +173,7 @@ document.addEventListener('input', function(ev){
   var q = ev.target.value.trim();
   hidden.value = ''; if (label) label.textContent = 'No user selected.';
   if (q.length < 2) { box.classList.add('hidden'); box.innerHTML=''; return; }
-  fetch('/admin/ajax_users.php?q='+encodeURIComponent(q), {headers:{'X-Requested-With':'XMLHttpRequest'}})
+  fetch((window.APP_BASE||'')+'/admin/ajax_users.php?q='+encodeURIComponent(q), {headers:{'X-Requested-With':'XMLHttpRequest'}})
     .then(function(r){ return r.json(); })
     .then(function(res){
       box.innerHTML='';
@@ -205,6 +206,7 @@ document.addEventListener('click', function(ev){
 JS;
 }
 function admin_pager(int $page, int $pages, string $base, array $q = []): void {
+    $base = url($base);
     echo '<div class="flex items-center justify-between mt-4">';
     if ($page > 1) {
         $q['page'] = $page - 1;

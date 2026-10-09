@@ -1,5 +1,8 @@
 -- Drillifx Phase 2 migration (non-destructive; run AFTER database/drillifx.sql)
--- Import via phpMyAdmin > Import, or use the provided PHP applier.
+-- Import via phpMyAdmin > Import.
+-- On cPanel the database has a prefixed name (e.g. cpuser_drillifx): either
+-- edit the USE line below to match, or skip it (phpMyAdmin already selects
+-- the target database on import).
 USE `drillifx`;
 SET FOREIGN_KEY_CHECKS=0;
 
@@ -131,8 +134,10 @@ CREATE TABLE IF NOT EXISTS `email_verify_tokens` (
   CONSTRAINT `fk_evt_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Phase 1 users table: verification timestamp (nullable = legacy verified)
-ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `email_verified_at` DATETIME NULL AFTER `status`;
+-- Phase 1 users table: verification timestamp (nullable = legacy verified).
+-- NOTE for MySQL (cPanel): MySQL does not support ADD COLUMN IF NOT EXISTS.
+-- Safe to ignore error 1060 (duplicate column) if you re-import this file.
+ALTER TABLE `users` ADD COLUMN `email_verified_at` DATETIME NULL AFTER `status`;
 
 -- Default settings (INSERT IGNORE so re-imports never overwrite admin changes)
 INSERT IGNORE INTO `settings` (`k`,`v`) VALUES

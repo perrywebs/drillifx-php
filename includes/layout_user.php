@@ -17,9 +17,9 @@ function user_head(string $title): void {
 
 function user_header(): void {
     echo '<header class="bg-white sticky top-0 z-40 shadow-sm"><div class="flex items-center justify-between px-4 py-3">';
-    echo '<a href="/users/dashboard.php" class="flex items-center gap-2"><img src="/images/usd-coin-usdc-logo.png" alt="logo" class="w-8 h-8"><span class="font-bold text-lg text-blue-800">Drillifyx</span></a>';
-    echo '<div class="flex items-center gap-3"><a href="/users/support.php" class="text-blue-600"><svg class="w-6 h-6 support-icon-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></a>';
-    echo '<a href="/users/notifications.php" class="text-gray-600 relative"><i class="fas fa-bell text-xl"></i></a></div>';
+    echo '<a href="' . e(url('/users/dashboard.php')) . '" class="flex items-center gap-2"><img src="' . e(site_logo()) . '" alt="logo" class="w-8 h-8"><span class="font-bold text-lg text-blue-800">Drillifyx</span></a>';
+    echo '<div class="flex items-center gap-3"><a href="' . e(url('/users/support.php')) . '" class="text-blue-600"><svg class="w-6 h-6 support-icon-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></a>';
+    echo '<a href="' . e(url('/users/notifications.php')) . '" class="text-gray-600 relative"><i class="fas fa-bell text-xl"></i></a></div>';
     echo '</div></header>';
 }
 
@@ -34,12 +34,13 @@ function user_nav(string $active): void {
     echo '<nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur z-50 border-t flex">';
     foreach ($items as $key => [$href, $label, $icon]) {
         $cls = 'bottom-nav-item flex-1 flex flex-col items-center py-2 text-xs text-gray-500 relative' . ($key === $active ? ' active' : '');
-        echo '<a href="' . $href . '" class="' . $cls . '"><i class="fas ' . $icon . ' text-lg"></i>' . e($label) . '</a>';
+        echo '<a href="' . e(url($href)) . '" class="' . $cls . '"><i class="fas ' . $icon . ' text-lg"></i>' . e($label) . '</a>';
     }
     echo '</nav>';
 }
 
 function user_footer_scripts(): void {
+    echo '<script>window.APP_BASE=' . json_encode(base_path()) . ';</script>';
     echo <<<'HTML'
 <script>
 function openModal(id){var m=document.getElementById(id);if(m){m.classList.remove('hidden');document.body.style.overflow='hidden';}}

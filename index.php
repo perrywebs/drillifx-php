@@ -26,10 +26,10 @@ try {
 <?php if (site_favicon()): ?><link rel="icon" href="<?php echo e(site_favicon()); ?>"><?php endif; ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo e(site_name()); ?> - <?php echo e(site_tagline()); ?></title>
-    <script src="3.4.17"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <link href="css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Signika Negative', sans-serif; }
         
@@ -166,7 +166,7 @@ try {
     <!-- Header -->
     <div class="p-4 flex items-center justify-between relative z-10">
         <div class="flex items-center gap-2">
-            <img src="<?php echo e(ltrim(site_logo(), '/')); ?>" alt="USDC" class="w-8 h-8 rounded-full">
+            <img src="<?php echo e(site_logo()); ?>" alt="USDC" class="w-8 h-8 rounded-full">
             <span class="font-bold text-gray-800"><?php echo e(site_name()); ?></span>
         </div>
         <a href="login.php" class="flex items-center gap-1 text-blue-600 font-semibold text-sm hover:text-blue-700 transition bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100">
@@ -183,7 +183,7 @@ try {
         <div class="float mb-8 relative">
             <div class="absolute inset-0 w-28 h-28 -m-2 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-3xl blur-xl scale-pulse"></div>
             <div class="w-24 h-24 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-3xl flex items-center justify-center pulse-glow shadow-2xl relative gradient-animate">
-                <img src="<?php echo e(ltrim(site_logo(), '/')); ?>" alt="USDC" class="w-16 h-16 rounded-full relative z-10">
+                <img src="<?php echo e(site_logo()); ?>" alt="USDC" class="w-16 h-16 rounded-full relative z-10">
                 <div class="absolute inset-0 rounded-3xl shimmer"></div>
             </div>
         </div>

@@ -21,21 +21,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $st = db()->prepare('SELECT * FROM users WHERE email = ? OR username = ? LIMIT 1');
     $st->execute([strtolower($login), $login]);
     $u = $st->fetch();
-    // rate limit: max 8 attempts / 10 min per IP (file-based simple)
+    // rate limit: max 8 attempts / 10 min per IP (file-based simple).
+    // Skipped gracefully when the temp dir is not writable (some shared hosts).
     $ip = client_ip();
-    $rl = sys_get_temp_dir() . '/drill_login_' . md5($ip);
-    $att = is_file($rl) ? (int)file_get_contents($rl) : 0;
-    if ($att >= 8) {
+    $rlDir = sys_get_temp_dir();
+    $rl = (is_string($rlDir) && is_dir($rlDir) && is_writable($rlDir))
+        ? rtrim($rlDir, '/\\') . '/drill_login_' . md5($ip) : null;
+    $att = ($rl !== null && is_file($rl)) ? (int)@file_get_contents($rl) : 0;
+    if ($rl !== null && $att >= 8) {
         $_SESSION['form_error'] = 'Too many attempts. Try again later.';
         redirect('/login.php');
     }
     if (!$u || $u['status'] !== 'active' || !password_verify($password, $u['password_hash'])) {
-        @file_put_contents($rl, (string)($att + 1));
+        if ($rl !== null) @file_put_contents($rl, (string)($att + 1));
         $_SESSION['form_error'] = 'Incorrect email/username or password.';
         $_SESSION['old_login'] = $login;
         redirect('/login.php');
     }
-    @unlink($rl);
+    if ($rl !== null) @unlink($rl);
     require_once __DIR__ . '/includes/mail.php';
     if (cfg_flag('email_verification', false) && empty($u['email_verified_at'])) {
         redirect('/verify.php?email=' . urlencode($u['email']));
@@ -43,7 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     login_user((int)$u['id']);
     log_activity((int)$u['id'], 'login', 'User logged in');
     $next = $_GET['next'] ?? $_POST['next'] ?? '';
-    if (is_string($next) && str_starts_with($next, '/users/')) redirect($next);
+    $base = base_path();
+    $check = is_string($next) ? $next : '';
+    if ($base !== '' && strpos($check, $base . '/') === 0) $check = substr($check, strlen($base));
+    if (str_starts_with($check, '/users/')) redirect($next);
     redirect('/users/dashboard.php');
 }
 ?>﻿
@@ -55,9 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php if (site_favicon()): ?><link rel="icon" href="<?php echo e(site_favicon()); ?>"><?php endif; ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - <?php echo e(site_name()); ?></title>
-    <script src="3.4.17"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             font-family: 'Signika Negative', sans-serif;
@@ -155,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Logo and Brand -->
             <div class="text-center mb-6">
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-lg mb-3">
-                    <img src="<?php echo e(ltrim(site_logo(), '/')); ?>" alt="USDC" class="w-10 h-10">
+                    <img src="<?php echo e(site_logo()); ?>" alt="USDC" class="w-10 h-10">
                 </div>
                 <h1 class="text-2xl font-bold text-gray-800"><?php echo e(site_name()); ?></h1>
                 <p class="text-gray-500 text-sm">Welcome back! Sign in to continue</p>

@@ -617,7 +617,7 @@ if (spinForm) spinForm.addEventListener('submit', function (e) {
     wheel.classList.add('spinning');
     playTickerSound();
     pendingReward = null; spinFailed = false;
-    $.ajax({ url: '/ajax/spin.php', method: 'POST', dataType: 'json', data: { csrf: csrf }, timeout: 15000 })
+    $.ajax({ url: (window.APP_BASE||'')+'/ajax/spin.php', method: 'POST', dataType: 'json', data: { csrf: csrf }, timeout: 15000 })
       .done(function (res) {
         if (res && res.success) { pendingReward = (res.data && res.data.reward) || 0; }
         else { spinFailed = true; pendingReward = null; window.__spinErr = (res && res.message) || 'Spin failed. Try again.'; }

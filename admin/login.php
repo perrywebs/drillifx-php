@@ -9,25 +9,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $login = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
         $ip = client_ip();
-        $rl = sys_get_temp_dir() . '/drill_admin_' . md5($ip);
-        $att = is_file($rl) ? (int)@file_get_contents($rl) : 0;
-        if ($att >= 10) $err = 'Too many attempts. Try again later.';
+        $rlDir = sys_get_temp_dir();
+        $rl = (is_string($rlDir) && is_dir($rlDir) && is_writable($rlDir))
+            ? rtrim($rlDir, '/\\') . '/drill_admin_' . md5($ip) : null;
+        $att = ($rl !== null && is_file($rl)) ? (int)@file_get_contents($rl) : 0;
+        if ($rl !== null && $att >= 10) $err = 'Too many attempts. Try again later.';
         elseif ($login === '' || $password === '') $err = 'Enter your email/username and password.';
         else {
             $st = db()->prepare('SELECT * FROM admins WHERE email=? OR username=? LIMIT 1');
             $st->execute([$login, $login]);
             $a = $st->fetch();
             if (!$a || $a['status'] !== 'active' || !password_verify($password, $a['password_hash'])) {
-                @file_put_contents($rl, (string)($att + 1));
+                if ($rl !== null) @file_put_contents($rl, (string)($att + 1));
                 $err = 'Incorrect credentials.';
                 admin_log($a ? (int)$a['id'] : null, 'admin_login_failed', 'Failed admin login for "' . mb_substr($login, 0, 80) . '"');
             } else {
-                @unlink($rl);
+                if ($rl !== null) @unlink($rl);
                 admin_login((int)$a['id'], $a['role']);
                 db()->prepare('UPDATE admins SET last_login_at=NOW() WHERE id=?')->execute([(int)$a['id']]);
                 admin_log((int)$a['id'], 'admin_login', $a['username'] . ' signed in');
                 $next = $_GET['next'] ?? '';
-                if (is_string($next) && str_starts_with($next, '/admin/')) redirect($next);
+                $base = base_path();
+                $check = is_string($next) ? $next : '';
+                if ($base !== '' && strpos($check, $base . '/') === 0) $check = substr($check, strlen($base));
+                if (str_starts_with($check, '/admin/')) redirect($next);
                 redirect('/admin/index.php');
             }
         }

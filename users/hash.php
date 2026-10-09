@@ -161,8 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hash'])) {
             <!-- Toast will be inserted here -->
         </div>
 
-        <!-- Moved audio before content and using direct URL for reliability -->
-        <audio id="hashSound" preload="auto" src="/images/cashier-quotka-chingquot-sound-effect.mp3"></audio>
+        <!-- Optional reward sound (only rendered when the file exists) -->
+        <?php if (is_file(__DIR__ . '/../images/cashier-quotka-chingquot-sound-effect.mp3')): ?><audio id="hashSound" preload="auto" src="<?php echo e(url('/images/cashier-quotka-chingquot-sound-effect.mp3')); ?>"></audio><?php endif; ?>
 
         <!-- Tier Expired Notification - using toast style -->
 
@@ -563,7 +563,7 @@ var hashBtn = document.getElementById('hashBtn');
                 hashBtn.disabled = true;
                 hashBtn.style.opacity = '.6';
                 $.ajax({
-                    url: '/ajax/hash.php', method: 'POST', dataType: 'json',
+                    url: (window.APP_BASE||'')+'/ajax/hash.php', method: 'POST', dataType: 'json',
                     data: { csrf: csrf }, timeout: 15000
                 }).done(function (res) {
                     if (res && res.success) {

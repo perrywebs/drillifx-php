@@ -1,5 +1,9 @@
--- Drillifx Phase 1 schema (MySQL, phpMyAdmin-ready)
--- Import via phpMyAdmin > Import, or: mysql -h127.0.0.1 -P3308 -uroot -p drillifx < drillifx.sql
+-- Drillifx Phase 1 schema (MySQL / MariaDB, phpMyAdmin-ready, utf8mb4)
+-- Import via phpMyAdmin > Import.
+-- On cPanel: create the database first ("MySQL Databases"; the name gets a
+-- prefix like cpuser_drillifx), select it in phpMyAdmin, then import this
+-- file. Either edit the CREATE/USE lines to your prefixed name or skip them
+-- (phpMyAdmin imports into the selected database).
 CREATE DATABASE IF NOT EXISTS `drillifx` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `drillifx`;
 

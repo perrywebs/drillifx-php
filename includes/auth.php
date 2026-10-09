@@ -30,16 +30,19 @@ function current_user(): ?array {
 function require_login(): array {
     $u = current_user();
     if (!$u) {
-        $next = urlencode($_SERVER['REQUEST_URI'] ?? '/users/dashboard.php');
-        redirect('/login.php?next=' . $next);
+        $next = urlencode($_SERVER['REQUEST_URI'] ?? url('/users/dashboard.php'));
+        redirect(url('/login.php') . '?next=' . $next);
     }
     // Maintenance mode: admins still pass, users are held on a notice page
     try {
         require_once __DIR__ . '/settings.php';
         if (setting('maintenance_mode', '0') === '1' && empty($_SESSION['admin_authenticated'])) {
-            $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) || str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/ajax/');
+            $uri = (string)($_SERVER['REQUEST_URI'] ?? '');
+            $base = base_path();
+            $path = $base !== '' && strpos($uri, $base) === 0 ? substr($uri, strlen($base)) : $uri;
+            $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strpos($path, '/ajax/') === 0;
             if ($isAjax) json_out(false, 'Platform is under maintenance. Try again shortly.', [], 503);
-            if (!str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/maintenance.php')) redirect('/maintenance.php');
+            if (strpos($path, '/maintenance.php') !== 0) redirect('/maintenance.php');
         }
     } catch (Throwable $e) {}
     return $u;

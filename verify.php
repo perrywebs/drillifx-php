@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($u && !$u['email_verified_at']) {
             $t = bin2hex(random_bytes(32));
             db()->prepare('INSERT INTO email_verify_tokens (user_id, token_hash, expires_at) VALUES (?,?,DATE_ADD(NOW(), INTERVAL 24 HOUR))')->execute([(int)$u['id'], hash('sha256', $t)]);
-            $link = rtrim((string)app_config('app_url'), '/') . '/verify.php?token=' . $t;
+            $link = rtrim(app_base_url(), '/') . '/verify.php?token=' . $t;
             send_template($u['email'], 'email_verify', user_email_vars($u, ['verify_link' => $link]), (int)$u['id']);
         }
         $msg = 'If that email needs verification, a new link has been sent.';
@@ -48,8 +48,8 @@ $prefill = $_GET['email'] ?? '';
 <meta charset="UTF-8">
 <?php if (site_favicon()): ?><link rel="icon" href="<?php echo e(site_favicon()); ?>"><?php endif; ?><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Verify Email - <?php echo e(site_name()); ?></title>
-<script src="3.4.17"></script>
-<link href="css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>*{font-family:'Signika Negative',sans-serif}</style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-white to-blue-100 min-h-screen flex items-center justify-center p-4">

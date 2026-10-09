@@ -644,14 +644,14 @@ document.getElementById('withdrawForm').addEventListener('submit', function (e) 
     var orig = btn.innerHTML;
     btn.disabled = true; btn.style.opacity = '.7'; btn.innerHTML = 'Processing...';
     $.ajax({
-        url: '/ajax/withdraw.php', method: 'POST', dataType: 'json',
+        url: (window.APP_BASE||'')+'/ajax/withdraw.php', method: 'POST', dataType: 'json',
         data: $(form).serialize(), timeout: 20000
     }).done(function (res) {
         if (res && res.success) {
             Toast.show(res.message || 'Withdrawal submitted.', 'success', 5000);
             setTimeout(function(){ window.location.reload(); }, 1500);
         } else {
-            if (res && res.data && res.data.need_pin) { window.location.href = '/users/set-pin.php'; return; }
+            if (res && res.data && res.data.need_pin) { window.location.href = (window.APP_BASE||'')+'/users/set-pin.php'; return; }
             Toast.show((res && res.message) || 'Withdrawal failed.', 'error', 6000);
             btn.disabled = false; btn.style.opacity = ''; btn.innerHTML = orig;
         }

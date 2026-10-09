@@ -21,17 +21,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     : ['image/png' => '.png', 'image/jpeg' => '.jpg', 'image/webp' => '.webp', 'image/svg+xml' => '.svg'];
                 if (!isset($ok[$mime])) admin_flash('error', 'Invalid file type. Upload a real image file.');
                 else {
-                    // Re-encode check for raster images to block polyglots
+                    // Re-encode check for raster images to block polyglots.
+                    // GD may be missing on minimal hosts: fall back to getimagesize()
+                    // (core PHP) so uploads still work with basic validation.
                     if (str_starts_with($mime, 'image/') && $mime !== 'image/svg+xml') {
-                        $img = match ($mime) {
-                            'image/png' => @imagecreatefrompng($f['tmp_name']),
-                            'image/jpeg' => @imagecreatefromjpeg($f['tmp_name']),
-                            'image/webp' => @imagecreatefromwebp($f['tmp_name']),
-                            default => null,
-                        };
-                        if ($img === false || $img === null) admin_flash('error', 'File is not a valid image.');
+                        $valid = false;
+                        if (function_exists('imagecreatefrompng')) {
+                            $img = match ($mime) {
+                                'image/png' => @imagecreatefrompng($f['tmp_name']),
+                                'image/jpeg' => @imagecreatefromjpeg($f['tmp_name']),
+                                'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($f['tmp_name']) : null,
+                                default => null,
+                            };
+                            $valid = ($img !== false && $img !== null);
+                            if (is_object($img) || (is_resource($img))) {
+                                if (function_exists('imagedestroy')) imagedestroy($img);
+                            }
+                        } else {
+                            $info = @getimagesize($f['tmp_name']);
+                            $valid = is_array($info) && ($info['mime'] ?? '') === $mime;
+                        }
+                        if (!$valid) admin_flash('error', 'File is not a valid image.');
                         else {
-                            imagedestroy($img);
                             $dir = __DIR__ . '/../uploads/branding';
                             if (!is_dir($dir)) mkdir($dir, 0755, true);
                             $name = ($which === 'site_favicon' ? 'favicon_' : 'logo_') . bin2hex(random_bytes(8)) . $ok[$mime];
@@ -68,7 +79,7 @@ echo '<div class="grid md:grid-cols-2 gap-4">';
 foreach ([['site_logo', 'Main logo', '2MB max. PNG, JPG, WEBP or SVG.'], ['site_favicon', 'Favicon', '512KB max. PNG, ICO or SVG.']] as [$key, $label, $hint]) {
     $cur = (string)setting($key, '');
     echo '<div class="bg-white rounded-2xl p-4 shadow-sm"><h2 class="font-bold text-sm mb-1">' . $label . '</h2><p class="text-xs text-slate-400 mb-3">' . $hint . '</p>';
-    if ($cur) echo '<p class="text-xs text-slate-500 mb-2">Current: <code>' . e($cur) . '</code></p><img src="' . e($cur) . '" alt="current" class="h-12 mb-3 bg-slate-100 rounded-lg p-1">';
+    if ($cur) echo '<p class="text-xs text-slate-500 mb-2">Current: <code>' . e($cur) . '</code></p><img src="' . e(strpos($cur, '/') === 0 ? url($cur) : $cur) . '" alt="current" class="h-12 mb-3 bg-slate-100 rounded-lg p-1">';
     else echo '<p class="text-xs text-slate-400 mb-2">Using default.</p>';
     echo '<form method="POST" enctype="multipart/form-data" class="flex gap-2">' . csrf_field() . '<input type="hidden" name="which" value="' . $key . '"><input type="file" name="file" required class="flex-1 text-sm border rounded-xl p-2"><button class="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-semibold">Upload</button></form></div>';
 }

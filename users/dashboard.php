@@ -3,15 +3,47 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/auth.php';
 $u = require_login();
 $pdo = db();
-$st = $pdo->prepare('SELECT * FROM tiers WHERE id = ? LIMIT 1'); $st->execute([(int)$u['tier_id']]);
-$tier = $st->fetch() ?: ['daily_hashes'=>1,'daily_spins'=>1];
-$tierName = $u['tier_name'] ?? 'Free Tier';
-$hashLimit = (int)($tier['daily_hashes'] ?? 1); $spinLimit = (int)($tier['daily_spins'] ?? 1);
+// Determine user's effective tier: upgrade option first, then tiers table
+$upgradeOptionId = (int)($u['upgrade_option_id'] ?? 0);
+$uo = null;
+if (!empty($upgradeOptionId)) {
+    $st = $pdo->prepare('SELECT * FROM upgrade_options WHERE id = ? AND active = 1 LIMIT 1');
+    $st->execute([$upgradeOptionId]);
+    $uo = $st->fetch();
+}
+if (!empty($uo)) {
+    $tierName = $uo['display_name'] ?? 'Beginner';
+    $rating = $uo['display_rating'] ?? '⭐⭐';
+    $hashLimit = (int)($uo['daily_hash_allowance'] ?? 1);
+    $spinLimit = (int)($uo['daily_spin_allowance'] ?? 1);
+    $referralReq = (float)($uo['referral_requirement'] ?? 3);
+    $reqType = $uo['requirement_type'] ?? 'fixed';
+} else {
+    $st = $pdo->prepare('SELECT * FROM tiers WHERE id = ? LIMIT 1');
+    $st->execute([(int)$u['tier_id']]);
+    $tier = $st->fetch() ?: ['daily_hashes'=>1,'daily_spins'=>1];
+    $tierName = $u['tier_name'] ?? 'Free Tier';
+    $rating = '';
+    $hashLimit = (int)($tier['daily_hashes'] ?? 1);
+    $spinLimit = (int)($tier['daily_spins'] ?? 1);
+    $referralReq = 3;
+    $reqType = 'fixed';
+}
 $hashDone = today_count('hashes', (int)$u['id']); $spinDone = today_count('spins', (int)$u['id']);
 $st = $pdo->prepare('SELECT COUNT(*) c FROM referrals WHERE referrer_id=?'); $st->execute([(int)$u['id']]); $refCount = (int)$st->fetch()['c'];
 $st = $pdo->prepare('SELECT type, amount, created_at FROM transactions WHERE user_id=? ORDER BY id DESC LIMIT 3'); $st->execute([(int)$u['id']]); $recent = $st->fetchAll();
-$st = $pdo->prepare('SELECT * FROM tiers WHERE id > ? ORDER BY id ASC LIMIT 2'); $st->execute([(int)$u['tier_id']]); $upsell = $st->fetchAll();
-if (!$upsell) { $st = $pdo->query('SELECT * FROM tiers WHERE id IN (1,2) ORDER BY id'); $upsell = $st->fetchAll(); }
+// Upsell: show next upgrade options based on referral progress
+$nextUpsell = [];
+if (!empty($uo)) {
+    // Show upgrade options with higher referral requirements
+    $st = $pdo->prepare('SELECT * FROM upgrade_options WHERE sort_order > ? AND active = 1 ORDER BY sort_order LIMIT 2');
+    $st->execute([$uo['sort_order']]);
+    $nextUpsell = $st->fetchAll();
+} elseif (!empty($tier)) {
+    $st = $pdo->query('SELECT * FROM tiers WHERE id > ? ORDER BY id ASC LIMIT 2'); $st->execute([(int)$u['tier_id']]); $nextUpsell = $st->fetchAll();
+    if (!$nextUpsell) { $st = $pdo->query('SELECT * FROM tiers WHERE id IN (1,2) ORDER BY id'); $nextUpsell = $st->fetchAll(); }
+}
+$st = $pdo->prepare('SELECT type, amount, created_at FROM transactions WHERE user_id=? ORDER BY id DESC LIMIT 3'); $st->execute([(int)$u['id']]); $recent = $st->fetchAll();
 $refLink = referral_link($u['referral_code']);
 ?>﻿
 <!DOCTYPE html>
@@ -347,8 +379,54 @@ document.addEventListener('DOMContentLoaded', function() {
         <a href="/users/upgrade.php" class="text-blue-600 text-xs font-medium">View All</a>
     </div>
     <div class="space-y-2">
-                <?php foreach ($upsell as $t): ?>
-                <div class="bg-white rounded-xl p-3 shadow-sm">
+        <?php if (!empty($uo)): ?>
+        <!-- Show progress toward next upgrade option -->
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+            <h3 class="font-semibold text-gray-800 text-sm">Current Level</h3>
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                    <?php echo $uo['display_rating']; ?>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-800 text-sm"><?php echo $uo['display_name']; ?></p>
+                    <p class="text-xs text-gray-500"><?php echo (int)$hashDone; ?>/<?php echo $hashLimit; ?> hashes today</p>
+                </div>
+            </div>
+            <div class="progress progress-sm mb-3">
+                <div class="progress-bar" role="progressbar" aria-valuenow="<?php echo (int)($refCount / $referralReq * 100); ?>" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo min(100, max(0, $refCount > 0 ? $refCount / $referralReq * 100 : 0)); ?>%"></div>
+            </div>
+            <p class="text-xs text-gray-500">Referrals: <strong><?php echo (int)$refCount; ?></strong> of <?php echo (int)$referralReq; ?> required<?php echo $refCount >= $referralReq ? ' - Eligible for upgrade!' : ''; ?></p>
+            <?php if ($refCount < $referralReq): ?>
+            <p class="text-xs text-gray-500"><?php echo $referralReq - $refCount; ?> more referral<?php echo $referralReq - $refCount > 1 ? 's' : ''; ?> needed</p>
+            <?php endif; ?>
+            <a href="/users/upgrade.php" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Upgrade Now</a>
+        </div>
+        <?php endif; ?>
+        <?php if (!empty($nextUpsell)): ?>
+        <div class="grid grid-cols-2 gap-2">
+            <?php foreach ($nextUpsell as $opt): ?>
+            <div class="bg-white rounded-xl p-3 shadow-sm">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                        <?php echo $opt['display_rating']; ?>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800 text-sm"><?php echo $opt['display_name']; ?></p>
+                        <p class="text-xs text-gray-500"><?php echo (int)$opt['daily_hash_allowance']; ?> hashes | <?php echo (int)$opt['daily_spin_allowance']; ?> spins</p>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500">Refer: <?php echo (int)$opt['referral_requirement']; ?> referrals<?php echo $opt['requirement_type'] === 'threshold' ? ' (more than)' : ''; ?></p>
+                <?php if ($refCount < $opt['referral_requirement']): ?>
+                <a href="/users/upgrade.php?tier=<?php echo $opt['name']; ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-xl text-xs font-semibold transition">Upgrade</a>
+                <?php else: ?>
+                <span class="text-green-600 text-xs font-semibold">Eligible</span>
+                <?php endif; ?>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php else: ?>
+        <?php foreach ($upsell as $t): ?>
+        <div class="bg-white rounded-xl p-3 shadow-sm">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
                     T<?php echo (int)$t["id"]; ?>                </div>
@@ -360,8 +438,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     $<?php echo e(money($t["price"])); ?>                </a>
             </div>
         </div>
-                <?php endforeach; ?>
-            </div>
+        <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
 </div>
 
 <!-- Referral Card - Compact -->

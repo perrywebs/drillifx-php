@@ -3,6 +3,14 @@ declare(strict_types=1);
 // Session + auth helpers. Include AFTER session_start().
 require_once __DIR__ . '/functions.php';
 
+function get_user_upgrade_option(int $userId): ?array {
+    try {
+        $st = db()->prepare('SELECT * FROM upgrade_options WHERE id = ? AND active = 1 LIMIT 1');
+        $st->execute([$userId]);
+        return $st->fetch();
+    } catch (Throwable $e) { return null; }
+}
+
 function current_user(): ?array {
     if (empty($_SESSION['user_id'])) return null;
     static $cache = null;
@@ -19,6 +27,14 @@ function current_user(): ?array {
             $u['tier_id'] = 0;
             $u['tier_name'] = 'Free Tier';
             $u['tier_expires_at'] = null;
+        }
+        // Upgrade over: if user has an active upgrade option, overlay its display info
+        if (!empty($u['upgrade_option_id'])) {
+            $uo = get_user_upgrade_option((int)$u['upgrade_option_id']);
+            if ($uo) {
+                $u['tier_name'] = $uo['display_name'] ?? $u['tier_name'];
+                $u['tier_rating'] = $uo['display_rating'] ?? '';
+            }
         }
         $cache = $u;
         return $u;

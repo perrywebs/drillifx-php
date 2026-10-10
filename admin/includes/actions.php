@@ -53,13 +53,25 @@ function admin_approve_deposit(array $admin, int $depositId): array {
     $pdo = db();
     $pdo->beginTransaction();
     try {
-        $st = $pdo->prepare('SELECT d.*, u.username, u.email, u.referred_by_id, t.name AS tier_name, t.duration_days FROM deposits d JOIN users u ON u.id=d.user_id JOIN tiers t ON t.id=d.tier_id WHERE d.id=? FOR UPDATE');
+        $st = $pdo->prepare('SELECT d.*, u.username, u.email, u.referred_by_id, u.upgrade_option_id, u.tier_id, t.display_name, t.display_rating FROM deposits d JOIN users u ON u.id=d.user_id LEFT JOIN upgrade_options t ON u.upgrade_option_id=t.id WHERE d.id=? FOR UPDATE');
         $st->execute([$depositId]);
         $d = $st->fetch();
         if (!$d) { $pdo->rollBack(); return ['ok' => false, 'msg' => 'Deposit not found.']; }
         if ($d['status'] !== 'pending') { $pdo->rollBack(); return ['ok' => false, 'msg' => 'Deposit is already ' . $d['status'] . '. Duplicate processing blocked.']; }
-        $expiry = date('Y-m-d H:i:s', strtotime('+' . (int)$d['duration_days'] . ' days'));
-        $pdo->prepare('UPDATE users SET tier_id=?, tier_expires_at=? WHERE id=?')->execute([(int)$d['tier_id'], $expiry, (int)$d['user_id']]);
+        // Determine tier from upgrade option or fallback to tiers table
+        $uo = $pdo->prepare('SELECT * FROM upgrade_options WHERE id = ? AND active = 1 LIMIT 1');
+        $uo->execute([(int)$d['upgrade_option_id']]);
+        $uoRow = $uo->fetch();
+        if (!empty($uoRow)) {
+            $tierName = $uoRow['display_name'] ?? 'Beginner';
+            $displayRating = $uoRow['display_rating'] ?? '⭐⭐';
+        } else {
+            $tierSt = $pdo->prepare('SELECT * FROM tiers WHERE id=? LIMIT 1'); $tierSt->execute([(int)$d['tier_id']]); $tier = $tierSt->fetch();
+            $tierName = $tier['name'] ?? ($u['tier_name'] ?? 'Free Tier');
+            $displayRating = $tier['display_rating'] ?? '';
+        }
+        $expiry = date('Y-m-d H:i:s', strtotime('+' . ($uoRow['duration_days'] ?? ($tier['duration_days'] ?? 30)) . ' days'));
+        $pdo->prepare('UPDATE users SET upgrade_option_id=?, display_name=?, display_rating=?, tier_expires_at=? WHERE id=?')->execute([(int)$d['upgrade_option_id'], $tierName, $displayRating, $expiry, (int)$d['user_id']]);
         $pdo->prepare('UPDATE deposits SET status="approved" WHERE id=? AND status="pending"')->execute([$depositId]);
         // Referral reward: pending referral becomes earned, referrer credited
         $reward = cfg_referral_reward();

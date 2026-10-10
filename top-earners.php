@@ -10,11 +10,11 @@ try {
     $pages = max(1, (int)ceil($total / $per));
     $page = min($page, $pages);
     $off = ($page - 1) * $per;
-    $st = $pdo->prepare('SELECT u.username, u.total_earned, COALESCE(t.name, ?) tier FROM users u LEFT JOIN tiers t ON t.id=u.tier_id ORDER BY u.total_earned DESC LIMIT ? OFFSET ?');
+    $st = $pdo->prepare('SELECT u.username, u.total_earned, COALESCE(t.display_name, ft.display_name, ?) tier FROM users u LEFT JOIN upgrade_options t ON u.upgrade_option_id=t.id LEFT JOIN tiers ft ON ft.id=u.tier_id ORDER BY u.total_earned DESC LIMIT ? OFFSET ?');
     $st->bindValue(1, 'Free Tier'); $st->bindValue(2, $per, PDO::PARAM_INT); $st->bindValue(3, $off, PDO::PARAM_INT);
     $st->execute();
     $rows = $st->fetchAll();
-    $st3 = $pdo->query('SELECT u.username, u.total_earned, COALESCE(t.name,"Free Tier") tier FROM users u LEFT JOIN tiers t ON t.id=u.tier_id ORDER BY u.total_earned DESC LIMIT 3');
+    $st3 = $pdo->query('SELECT u.username, u.total_earned, COALESCE(t.display_name, ft.display_name, "Free Tier") tier FROM users u LEFT JOIN upgrade_options t ON u.upgrade_option_id=t.id LEFT JOIN tiers ft ON ft.id=u.tier_id ORDER BY u.total_earned DESC LIMIT 3');
     $podium = $st3 ? $st3->fetchAll() : [];
 } catch (Throwable $e) { $total = 0; $sum = 0; $pages = 1; $rows = []; $podium = []; }
 $from = $total ? $off + 1 : 0; $to = min($total, $off + $per);

@@ -3,10 +3,26 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/auth.php';
 $u = require_login();
 $pdo = db();
-$st = $pdo->prepare('SELECT * FROM tiers WHERE id=? LIMIT 1'); $st->execute([(int)$u['tier_id']]); $tier = $st->fetch() ?: [];
-$tierName = $u['tier_name'] ?? 'Free Tier';
-$perHash = (float)($tier['per_hash'] ?? 0);
-$limit = (int)($tier['daily_hashes'] ?? 1);
+// Determine user's effective tier: upgrade option first, then tiers table
+$upgradeOptionId = (int)($u['upgrade_option_id'] ?? 0);
+$uo = null;
+if (!empty($upgradeOptionId)) {
+    $st = $pdo->prepare('SELECT * FROM upgrade_options WHERE id = ? AND active = 1 LIMIT 1');
+    $st->execute([$upgradeOptionId]);
+    $uo = $st->fetch();
+}
+if (!empty($uo)) {
+    $tierName = $uo['display_name'] ?? 'Beginner';
+    $perHash = (float)($uo['price'] ?? 0);
+    $limit = (int)($uo['daily_hash_allowance'] ?? 1);
+    $rating = $uo['display_rating'] ?? '⭐⭐';
+} else {
+    $st = $pdo->prepare('SELECT * FROM tiers WHERE id=? LIMIT 1'); $st->execute([(int)$u['tier_id']]); $tier = $st->fetch() ?: [];
+    $tierName = $u['tier_name'] ?? 'Free Tier';
+    $perHash = (float)($tier['per_hash'] ?? 0);
+    $limit = (int)($tier['daily_hashes'] ?? 1);
+    $rating = '';
+}
 $done = today_count('hashes', (int)$u['id']);
 $left = max(0, $limit - $done);
 $pct = $limit > 0 ? (int)round($done / $limit * 100) : 0;

@@ -15,6 +15,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif (isset($_POST['do_status']) && $canStatus) {
         $r = admin_set_user_status($admin, $id, $_POST['do_status'] === 'suspended' ? 'suspended' : 'active');
         admin_flash($r['ok'] ? 'success' : 'error', $r['msg']);
+    } elseif (isset($_POST['do_tier']) && $canStatus) {
+        $newTierId = (int)($_POST['new_tier'] ?? 0);
+        if ($newTierId <= 0) { admin_flash('error', 'Please select a tier.'); }
+        else {
+            $tierCheck = $pdo->prepare('SELECT * FROM tiers WHERE id = ? LIMIT 1')->execute([$newTierId])->fetch();
+            if (!$tierCheck) { admin_flash('error', 'Tier not found.'); }
+            else {
+                $pdo->prepare('UPDATE users SET tier_id = ?, display_name = ?, display_rating = ? WHERE id = ?')->execute([$newTierId, $tierCheck['display_name'] ?? '', $tierCheck['display_rating'] ?? '', $id]);
+                admin_flash('success', 'User tier updated to ' . e($tierCheck['display_name'] ?? 'Tier') . '.');
+            }
+        }
+        redirect('/admin/user.php?id=' . $id);
     } elseif (isset($_POST['direction']) && $canMoney) {
         $amt = abs((float)($_POST['amount'] ?? 0));
         if ($_POST['direction'] === 'debit') $amt = -$amt;
@@ -68,7 +80,36 @@ if ($canMoney) {
     echo '<label class="text-xs text-slate-500 flex-1 min-w-[100px]">Amount ($)<br><input name="amount" type="number" step="0.01" min="0.01" required class="w-full border rounded-xl px-3 py-2 text-sm bg-white"></label>';
     echo '<label class="text-xs text-slate-500 flex-[2] min-w-[160px]">Why? (required)<br><input name="reason" required maxlength="200" placeholder="e.g. Correction for ..." class="w-full border rounded-xl px-3 py-2 text-sm bg-white"></label>';
     echo '<button class="bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">Remove Money</button></form>';
-    echo '</div>';
+echo '</div>';
+echo '<div class="bg-white rounded-2xl p-4 shadow-sm mt-4">';
+echo '<h2 class="font-bold text-sm mb-3">Tier Assignment</h2>';
+echo '<p class="text-sm text-slate-500 mb-3">Assign or change the user\'s current tier.</p>';
+echo '<form method="POST" class="space-y-3">';
+echo '<input type="hidden" name="id" value="' . $id . '">';
+echo '<input type="hidden" name="do_tier" value="1">';
+echo '<div class="grid md:grid-cols-2 gap-3">';
+echo '<label class="text-sm text-slate-600">Current Tier</label>';
+echo '<div class="flex items-center gap-2">';
+echo '<span class="px-3 py-1 bg-gray-100 text-sm rounded font-mono" id="curTier">' . e($u['tier_name'] ?? 'Free Tier') . '</span>';
+echo '</div>';
+echo '</div>';
+echo '<div class="grid md:grid-cols-3 gap-3">';
+echo '<label class="text-sm text-slate-600">New Tier</label>';
+echo '<select name="new_tier" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm">';
+echo '<option value="">-- Select tier --</option>';
+$allTiers = $pdo->query("SELECT * FROM tiers ORDER BY active DESC, id")->fetchAll(PDO::FETCH_ASSOC);
+foreach ($allTiers as $t): $act = $t['active'] ? 'bg-green-100' : 'bg-red-100'; $actCls = $t['active'] ? 'text-green-800' : 'text-red-800';
+echo '<option value="' . $t['id'] . '" ' . ($u['tier_id'] == $t['id'] ? 'selected' : '') . ' class="' . $act . '">' . e($t['display_name'] ?? $t['name']) . ' ' . e($t['display_rating'] ?? '') . '</option>';
+endforeach;
+echo '</select>';
+echo '</div>';
+echo '</div>';
+echo '<div class="flex gap-3">';
+echo '<button type="submit" name="do_tier" value="assign" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-semibold">Assign Tier</button>';
+echo '<button type="button" onclick="if(confirm(\'Are you sure you want to change this user\'s tier?\')) window.location=\'/admin/user.php?id=' . $id . '\'" class="bg-slate-200 px-4 py-2 rounded text-sm">Cancel</button>';
+echo '</div>';
+echo '</form>';
+echo '</div>';
 }
 echo '</div>';
 

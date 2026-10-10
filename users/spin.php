@@ -3,9 +3,24 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/auth.php';
 $u = require_login();
 $pdo = db();
-$st = $pdo->prepare('SELECT * FROM tiers WHERE id=? LIMIT 1'); $st->execute([(int)$u['tier_id']]); $tier = $st->fetch() ?: [];
-$tierName = $u['tier_name'] ?? 'Free Tier';
-$limit = (int)($tier['daily_spins'] ?? 1);
+// Determine user's effective tier: upgrade option first, then tiers table
+$upgradeOptionId = (int)($u['upgrade_option_id'] ?? 0);
+$uo = null;
+if (!empty($upgradeOptionId)) {
+    $st = $pdo->prepare('SELECT * FROM upgrade_options WHERE id = ? AND active = 1 LIMIT 1');
+    $st->execute([$upgradeOptionId]);
+    $uo = $st->fetch();
+}
+if (!empty($uo)) {
+    $tierName = $uo['display_name'] ?? 'Beginner';
+    $limit = (int)($uo['daily_spin_allowance'] ?? 1);
+    $rating = $uo['display_rating'] ?? '⭐⭐';
+} else {
+    $st = $pdo->prepare('SELECT * FROM tiers WHERE id=? LIMIT 1'); $st->execute([(int)$u['tier_id']]); $tier = $st->fetch() ?: [];
+    $tierName = $u['tier_name'] ?? 'Free Tier';
+    $limit = (int)($tier['daily_spins'] ?? 1);
+    $rating = '';
+}
 $done = today_count('spins', (int)$u['id']);
 $left = max(0, $limit - $done);
 $pct = $limit > 0 ? (int)round($done / $limit * 100) : 0;

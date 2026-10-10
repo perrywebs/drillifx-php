@@ -63,6 +63,9 @@ function admin_sections(array $admin): array {
             ['branding', 'Branding', 'fa-image', '/admin/branding.php', $canConfig],
             ['smtp', 'Email / SMTP', 'fa-envelope', '/admin/smtp.php', $canConfig],
         ]],
+        ['label' => 'Tiers', 'items' => [
+            ['tiers', 'Manage Tiers', 'fa-layer-group', '/admin/tiers.php', $canConfig],
+        ]],
         ['label' => 'System', 'items' => [
             ['audit', 'Activity Log', 'fa-clock-rotate-left', '/admin/audit.php', true],
             ['admins', 'Administrators', 'fa-user-shield', '/admin/admins.php', $isSuper],

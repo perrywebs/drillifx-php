@@ -5,9 +5,22 @@ require_once __DIR__ . '/../includes/mail.php';
 $u = require_login();
 $pdo = db();
 $tierId = (int)($_GET['tier'] ?? $_POST['tier'] ?? 0);
-$st = $pdo->prepare('SELECT * FROM tiers WHERE id=? LIMIT 1');
-$st->execute([$tierId]);
-$tier = $st->fetch();
+$tierNameFromUrl = $_GET['tier_name'] ?? '';
+// Look up tier from upgrade_options (by name) first, then tiers (by ID)
+$tier = null;
+$tierSource = '';
+if (!empty($tierId)) {
+    $st = $pdo->prepare('SELECT * FROM tiers WHERE id=? LIMIT 1');
+    $st->execute([$tierId]);
+    $tier = $st->fetch();
+    if ($tier) { $tierSource = 'tiers'; }
+}
+if (empty($tier) && !empty($tierNameFromUrl)) {
+    $st = $pdo->prepare('SELECT * FROM upgrade_options WHERE name=? AND active=1 LIMIT 1');
+    $st->execute([$tierNameFromUrl]);
+    $tier = $st->fetch();
+    if ($tier) { $tierSource = 'upgrade_options'; }
+}
 if (!$tier || $tierId <= 0) { flash('error','Upgrade','Invalid tier selected.'); redirect('/users/upgrade.php'); }
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -34,8 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!move_uploaded_file($f['tmp_name'], $dir . '/' . $name)) $err = 'Upload failed. Try again.';
                     else {
                         $ref = gen_reference('DEP');
-                        $st = $pdo->prepare('INSERT INTO deposits (user_id,tier_id,amount,status,proof_path,reference) VALUES (?,?,?,?,?,?)');
-                        $st->execute([(int)$u['id'], $tierId, $tier['price'], 'pending', 'uploads/proofs/' . $name, $ref]);
+                        $doid = ($tierSource === 'upgrade_options') ? $tier['id'] : $tierId;
+                        $st = $pdo->prepare('INSERT INTO deposits (user_id,tier_id,upgrade_option_id,amount,status,proof_path,reference) VALUES (?,?,?,?,?,?)');
+                        $st->execute([(int)$u['id'], $tierId, $doid, $tier['price'], 'pending', 'uploads/proofs/' . $name, $ref]);
                         log_activity((int)$u['id'], 'deposit', 'Upgrade deposit ' . $ref . ' for ' . $tier['name']);
                         notify((int)$u['id'], 'Deposit received', 'Your ' . $tier['name'] . ' payment proof is under review.');
                         send_template($u['email'], 'deposit_submitted', user_email_vars($u, ['tier_name' => $tier['name'], 'amount' => number_format((float)$tier['price'], 2), 'reference' => $ref]), (int)$u['id']);
@@ -92,6 +106,7 @@ $isCurrent = ((int)$u['tier_id'] === $tierId);
 <form method="POST" enctype="multipart/form-data" class="space-y-3" id="depForm">
 <?php echo csrf_field(); ?>
 <input type="hidden" name="tier" value="<?php echo (int)$tierId; ?>">
+<input type="hidden" name="tier_name" value="<?php echo e($tier['display_name'] ?? $tierNameFromUrl); ?>">
 <input type="file" name="proof" accept=".jpg,.jpeg,.png,.webp,.pdf" class="w-full text-sm border border-gray-200 rounded-xl p-2">
 <button id="depBtn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold">Submit for Approval</button>
 </form>

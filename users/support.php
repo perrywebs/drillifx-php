@@ -204,7 +204,7 @@ $support = app_config('support');
                 </div>
                 <div class="flex-1">
                     <h3 class="font-semibold text-gray-800">Email Us</h3>
-                    <p class="text-gray-500 text-sm">support@drillfyx.org</p>
+                    <p class="text-gray-500 text-sm">support@nexoraspin.live</p>
                 </div>
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

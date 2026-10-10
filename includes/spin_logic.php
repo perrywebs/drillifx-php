@@ -37,14 +37,29 @@ function do_spin(int $userId): array {
         $u = $st->fetch();
         if (!$u || $u['status'] !== 'active') { $pdo->rollBack(); return ['ok' => false, 'msg' => 'Account not available.']; }
         $tierId = (int)$u['tier_id'];
-        if (!empty($u['tier_expires_at']) && $tierId > 0 && strtotime($u['tier_expires_at']) < time()) {
-            $tierId = 0;
-            $pdo->prepare('UPDATE users SET tier_id=0, tier_expires_at=NULL WHERE id=?')->execute([$userId]);
+        // Check upgrade option daily limits first, fallback to tiers table
+        $dailySpins = 1;
+        if (!empty($u['upgrade_option_id'])) {
+            $uo = db()->prepare('SELECT * FROM upgrade_options WHERE id = ? AND active = 1 LIMIT 1');
+            $uo->execute([(int)$u['upgrade_option_id']]);
+            $uoRow = $uo->fetch();
+            if ($uoRow) {
+                $dailySpins = (int)($uoRow['daily_spin_allowance'] ?? 1);
+            }
         }
-        $st = $pdo->prepare('SELECT * FROM tiers WHERE id=? LIMIT 1');
-        $st->execute([$tierId]);
-        $tier = $st->fetch();
-        $limit = (int)($tier['daily_spins'] ?? 1);
+        if (empty($u['upgrade_option_id']) || !$uoRow) {
+            // Fall back to tiers table tier expiry logic
+            if (!empty($u['tier_expires_at']) && $tierId > 0 && strtotime($u['tier_expires_at']) < time()) {
+                $tierId = 0;
+                $pdo->prepare('UPDATE users SET tier_id=0, tier_expires_at=NULL WHERE id=?')->execute([$userId]);
+            }
+            $st = $pdo->prepare('SELECT * FROM tiers WHERE id=? LIMIT 1');
+            $st->execute([$tierId]);
+            $tier = $st->fetch();
+            $limit = (int)($tier['daily_spins'] ?? 1);
+        } else {
+            $limit = $dailySpins;
+        }
         $st = $pdo->prepare('SELECT COUNT(*) c FROM spins WHERE user_id=? AND DATE(created_at)=CURDATE()');
         $st->execute([$userId]);
         $done = (int)$st->fetch()['c'];

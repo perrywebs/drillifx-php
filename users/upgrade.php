@@ -2,12 +2,41 @@
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/auth.php';
 $u = require_login();
-$tierName = $u['tier_name'] ?? 'Free Tier';
-$tiers = db()->query('SELECT * FROM tiers WHERE id > 0 ORDER BY id')->fetchAll();
+$upgradeOptionId = (int)($u['upgrade_option_id'] ?? 0);
+$uo = null;
+if (!empty($upgradeOptionId)) {
+    $st = db()->prepare('SELECT * FROM upgrade_options WHERE id = ? AND active = 1 LIMIT 1');
+    $st->execute([$upgradeOptionId]);
+    $uo = $st->fetch();
+}
+if (!empty($uo)) {
+    $tierName = $uo['display_name'] ?? 'Beginner';
+    $rating = $uo['display_rating'] ?? '⭐⭐';
+    $hashLimit = (int)($uo['daily_hash_allowance'] ?? 1);
+    $spinLimit = (int)($uo['daily_spin_allowance'] ?? 1);
+    $referralReq = (float)($uo['referral_requirement'] ?? 3);
+    $reqType = $uo['requirement_type'] ?? 'fixed';
+    $currentOpt = $uo;
+} else {
+    $st = db()->prepare('SELECT * FROM tiers WHERE id = ? LIMIT 1');
+    $st->execute([(int)$u['tier_id']]);
+    $tier = $st->fetch() ?: ['name'=>'Free Tier','daily_hashes'=>1,'daily_spins'=>1,'per_hash'=>0,'duration_days'=>0];
+    $tierName = $u['tier_name'] ?? 'Free Tier';
+    $rating = '';
+    $hashLimit = (int)($tier['daily_hashes'] ?? 1);
+    $spinLimit = (int)($tier['daily_spins'] ?? 1);
+    $referralReq = 3;
+    $reqType = 'fixed';
+    $currentOpt = null;
+}
+// Get pending deposits
 $st = db()->prepare('SELECT tier_id FROM deposits WHERE user_id=? AND status="pending"');
 $st->execute([(int)$u['id']]);
 $pendingTiers = array_map('intval', array_column($st->fetchAll(), 'tier_id'));
+// Get upgrade options for display (excluding current)
+$allOpts = db()->query('SELECT * FROM upgrade_options WHERE active = 1 ORDER BY sort_order')->fetchAll();
 ?><!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -107,6 +136,7 @@ $pendingTiers = array_map('intval', array_column($st->fetchAll(), 'tier_id'));
 </head>
 
 <body class="min-h-screen">
+
     <!-- Redesigned header - clean white with subtle shadow -->
     <header class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-40">
         <div class="px-4 py-3">
@@ -171,13 +201,17 @@ $pendingTiers = array_map('intval', array_column($st->fetchAll(), 'tier_id'));
                             <p class="text-lg font-bold"><?php echo e($tierName); ?></p>
                         </div>
                         <div class="text-right">
+<?php if (!empty($currentOpt)): ?>
                             <span
                                 class="inline-flex items-center gap-1 bg-yellow-500/20 px-2 py-1 rounded-full text-xs">
                                 <svg class="w-3 h-3 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
                                     <path
                                         d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                 </svg>
-                                Tier 0 </span>
+                                <?php echo $currentOpt['display_name']; ?> <?php echo $currentOpt['display_rating']; ?>
+<?php else: ?>
+                                <span class="text-gray-500">Tier 0</span>
+<?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -187,93 +221,124 @@ $pendingTiers = array_map('intval', array_column($st->fetchAll(), 'tier_id'));
         <!-- Added section title matching dashboard style -->
         <div class="flex items-center justify-between mb-3">
             <h2 class="text-gray-700 font-semibold text-sm">Available Tiers</h2>
+<?php if (!empty($currentOpt)): ?>
+            <span class="text-xs text-gray-500">Your level: <?php echo $currentOpt['display_name']; ?> (<?php echo $currentOpt['display_rating']; ?>)</span>
+<?php else: ?>
             <span class="text-xs text-gray-500">4 tiers</span>
+<?php endif; ?>
         </div>
 
         <!-- Redesigned tier cards with modern styling and SVG icons -->
         <div class="space-y-3 mb-4">
-<?php foreach ($tiers as $t): $isCurrent = ((int)$t['id'] === (int)$u['tier_id']); $isPending = in_array((int)$t['id'], $pendingTiers, true); ?>
-            <div class="bg-white rounded-2xl shadow-sm overflow-hidden <?php echo $isCurrent ? 'ring-2 ring-green-500' : ''; ?>">
-                <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-3">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold text-sm">
-                                T<?php echo (int)$t['id']; ?> </div>
-                            <div>
-                                <h3 class="font-bold text-sm text-gray-800"><?php echo e($t['name']); ?></h3>
-                                <p class="text-xs text-gray-500"><?php echo (int)$t['duration_days']; ?> days duration</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xl font-bold text-blue-600">$<?php echo e(money($t['price'])); ?></p>
-                            <?php if ($isCurrent): ?><span class="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">CURRENT</span><?php endif; ?>
-                        </div>
-                    </div>
+<?php if (!empty($currentOpt)): ?>
+<!-- Show next upgrade options (skip current) -->
+<?php $nextOpts = array_filter($allOpts, function($o) use ($currentOpt) { return $o['sort_order'] > $currentOpt['sort_order'] && $o['active'] === 1; }); ?>
+<?php foreach (array_values($nextOpts) as $opt): $isCurrent = false; ?>
+<div class="bg-white rounded-2xl shadow-sm overflow-hidden <?php echo $isCurrent ? 'ring-2 ring-green-500' : ''; ?>">
+    <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold text-sm">
+                    <?php echo $opt['display_rating']; ?>
                 </div>
-                <div class="p-3">
-                    <div class="grid grid-cols-3 gap-2 mb-3">
-                        <div class="text-center p-2 bg-blue-50 rounded-xl">
-                            <p class="text-sm font-bold text-gray-800"><?php echo (int)$t['daily_hashes']; ?></p>
-                            <p class="text-xs text-gray-500">Hashes</p>
-                        </div>
-                        <div class="text-center p-2 bg-green-50 rounded-xl">
-                            <p class="text-sm font-bold text-gray-800">$<?php echo e(money($t['per_hash'])); ?></p>
-                            <p class="text-xs text-gray-500">Per Hash</p>
-                        </div>
-                        <div class="text-center p-2 bg-purple-50 rounded-xl">
-                            <p class="text-sm font-bold text-gray-800"><?php echo (int)$t['daily_spins']; ?></p>
-                            <p class="text-xs text-gray-500">Spins</p>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 rounded-xl p-2 mb-3">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Potential Earnings</p>
-                        <div class="grid grid-cols-4 gap-1 text-center">
-                            <div><p class="font-bold text-gray-800 text-sm">$<?php echo e(money($t['daily_earn'])); ?></p><p class="text-xs text-gray-500">Daily</p></div>
-                            <div><p class="font-bold text-gray-800 text-sm">$<?php echo e(money($t['weekly_earn'])); ?></p><p class="text-xs text-gray-500">Weekly</p></div>
-                            <div><p class="font-bold text-gray-800 text-sm">$<?php echo e(money($t['monthly_earn'])); ?></p><p class="text-xs text-gray-500">Monthly</p></div>
-                            <div><p class="font-bold text-green-600 text-sm">$<?php echo e(money($t['total_earn'])); ?></p><p class="text-xs text-gray-500">Total</p></div>
-                        </div>
-                    </div>
-                    <?php if ($isCurrent): ?>
-                    <div class="block w-full bg-green-100 text-green-700 py-2.5 rounded-xl font-semibold text-sm text-center">Current Tier<?php echo $u['tier_expires_at'] ? ' — expires ' . e(date('M d, Y', strtotime($u['tier_expires_at']))) : ''; ?></div>
-                    <?php elseif ($isPending): ?>
-                    <div class="block w-full bg-yellow-100 text-yellow-700 py-2.5 rounded-xl font-semibold text-sm text-center">Pending Approval</div>
-                    <?php else: ?>
-                    <a href="/users/deposit.php?tier=<?php echo (int)$t['id']; ?>" class="block w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 rounded-xl font-semibold text-sm text-center transition">Upgrade Now</a>
-                    <?php endif; ?>
+                <div>
+                    <h3 class="font-bold text-sm text-gray-800"><?php echo $opt['display_name']; ?></h3>
+                    <p class="text-xs text-gray-500"><?php echo (int)$opt['daily_hash_allowance']; ?> hashes | <?php echo (int)$opt['daily_spin_allowance']; ?> spins</p>
                 </div>
             </div>
-            <?php endforeach; ?>
-        <!-- Redesigned info card matching dashboard style -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
-            <div class="flex items-center gap-2 mb-3">
-                <div
-                    class="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <h3 class="font-semibold text-gray-800 text-sm">How Upgrades Work</h3>
-            </div>
-            <div class="space-y-2">
-                <div class="flex items-center gap-2">
-                    <span
-                        class="w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs flex items-center justify-center font-bold">1</span>
-                    <p class="text-xs text-gray-600">Select a tier and complete payment</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span
-                        class="w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs flex items-center justify-center font-bold">2</span>
-                    <p class="text-xs text-gray-600">Upload proof of payment</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span
-                        class="w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs flex items-center justify-center font-bold">3</span>
-                    <p class="text-xs text-gray-600">Get approved and start earning more!</p>
-                </div>
+            <div class="text-right">
+                <p class="text-xl font-bold text-blue-600">$<?php echo e(money($opt['price'])); ?></p>
+<?php if ($refCount >= $opt['referral_requirement']): ?><span class="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">CURRENT</span><?php endif; ?>
             </div>
         </div>
+    </div>
+    <div class="p-3">
+        <div class="grid grid-cols-3 gap-2 mb-3">
+            <div class="text-center p-2 bg-blue-50 rounded-xl">
+                <p class="text-sm font-bold text-gray-800"><?php echo (int)$opt['daily_hash_allowance']; ?></p>
+                <p class="text-xs text-gray-500">Hashes</p>
+            </div>
+            <div class="text-center p-2 bg-green-50 rounded-xl">
+                <p class="text-sm font-bold text-gray-800">$<?php echo e(money($opt['price'])); ?></p>
+                <p class="text-xs text-gray-500">Price</p>
+            </div>
+            <div class="text-center p-2 bg-purple-50 rounded-xl">
+                <p class="text-sm font-bold text-gray-800"><?php echo (int)$opt['daily_spin_allowance']; ?></p>
+                <p class="text-xs text-gray-500">Spins</p>
+            </div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-2 mb-3">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Referral Requirement</p>
+            <div class="grid grid-cols-2 gap-1 text-center">
+                <div><p class="font-bold text-gray-800 text-sm"><?php echo (int)$opt['referral_requirement']; ?></p><p class="text-xs text-gray-500">referrals</p></div>
+                <div><p class="font-bold text-gray-800 text-sm"><?php echo $opt['requirement_type'] === 'threshold' ? 'more than' : 'exact'; ?></p><p class="text-xs text-gray-500"><?php echo $opt['requirement_type'] === 'threshold' ? '10' : ''; ?>+</p></div>
+            </div>
+        </div>
+        <?php if ($refCount >= $opt['referral_requirement']): ?>
+        <div class="block w-full bg-green-100 text-green-700 py-2.5 rounded-xl font-semibold text-sm text-center">Eligible</div>
+        <?php else: ?>
+        <a href="/users/deposit.php?tier=<?php echo $opt['name']; ?>&tier_name=<?php echo urlencode($opt['display_name']); ?>" class="block w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 rounded-xl font-semibold text-sm text-center transition">Upgrade Now</a>
+        <?php endif; ?>
+</div>
+</div>
+<?php endforeach; ?>
+<?php else: ?>
+<!-- Fallback to database tiers if no upgrade option -->
+<?php $st = db()->query("SELECT * FROM tiers ORDER BY id"); $tiers = $st->fetchAll(PDO::FETCH_ASSOC); ?>
+<?php foreach ($tiers as $t): $isCurrent = ((int)$t['id'] === (int)$u['tier_id']); $isPending = in_array((int)$t['id'], $pendingTiers, true); ?>
+<div class="bg-white rounded-2xl shadow-sm overflow-hidden <?php echo $isCurrent ? 'ring-2 ring-green-500' : ''; ?>">
+    <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold text-sm">
+                    T<?php echo (int)$t['id']; ?> </div>
+                <div>
+                    <h3 class="font-bold text-sm text-gray-800"><?php echo e($t['name']); ?></h3>
+                    <p class="text-xs text-gray-500"><?php echo (int)$t['duration_days']; ?> days duration</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-xl font-bold text-blue-600">$<?php echo e(money($t['price'])); ?></p>
+                <?php if ($isCurrent): ?><span class="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">CURRENT</span><?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <div class="p-3">
+        <div class="grid grid-cols-3 gap-2 mb-3">
+            <div class="text-center p-2 bg-blue-50 rounded-xl">
+                <p class="text-sm font-bold text-gray-800"><?php echo (int)$t['daily_hashes']; ?></p>
+                <p class="text-xs text-gray-500">Hashes</p>
+            </div>
+            <div class="text-center p-2 bg-green-50 rounded-xl">
+                <p class="text-sm font-bold text-gray-800">$<?php echo e(money($t['per_hash'])); ?></p>
+                <p class="text-xs text-gray-500">Per Hash</p>
+            </div>
+            <div class="text-center p-2 bg-purple-50 rounded-xl">
+                <p class="text-sm font-bold text-gray-800"><?php echo (int)$t['daily_spins']; ?></p>
+                <p class="text-xs text-gray-500">Spins</p>
+            </div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-2 mb-3">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Potential Earnings</p>
+            <div class="grid grid-cols-4 gap-1 text-center">
+                <div><p class="font-bold text-gray-800 text-sm">$<?php echo e(money($t['daily_earn'])); ?></p><p class="text-xs text-gray-500">Daily</p></div>
+                <div><p class="font-bold text-gray-800 text-sm">$<?php echo e(money($t['weekly_earn'])); ?></p><p class="text-xs text-gray-500">Weekly</p></div>
+                <div><p class="font-bold text-gray-800 text-sm">$<?php echo e(money($t['monthly_earn'])); ?></p><p class="text-xs text-gray-500">Monthly</p></div>
+                <div><p class="font-bold text-green-600 text-sm">$<?php echo e(money($t['total_earn'])); ?></p><p class="text-xs text-gray-500">Total</p></div>
+            </div>
+        </div>
+        <?php if ($isCurrent): ?>
+        <div class="block w-full bg-green-100 text-green-700 py-2.5 rounded-xl font-semibold text-sm text-center">Current Tier<?php echo $u['tier_expires_at'] ? ' — expires ' . e(date('M d, Y', strtotime($u['tier_expires_at']))) : ''; ?></div>
+        <?php elseif ($isPending): ?>
+        <div class="block w-full bg-yellow-100 text-yellow-700 py-2.5 rounded-xl font-semibold text-sm text-center">Pending Approval</div>
+        <?php else: ?>
+        <a href="/users/deposit.php?tier=<?php echo (int)$t['id']; ?>&tier_name=<?php echo urlencode($t['name']); ?>" class="block w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 rounded-xl font-semibold text-sm text-center transition">Upgrade Now</a>
+        <?php endif; ?>
+</div>
+</div>
+<?php endforeach; ?>
+<?php endif; ?>
+</div>
 
     </main>
 

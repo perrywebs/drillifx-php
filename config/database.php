@@ -23,9 +23,9 @@ $dbCharset = getenv('DB_CHARSET');
 
 return [
     'host' => (is_string($dbHost) && trim($dbHost) !== '') ? trim($dbHost) : 'localhost',
-    'port' => (is_string($dbPort) && (int)$dbPort > 0) ? (int)$dbPort : 3306,
+    'port' => (is_string($dbPort) && (int)$dbPort > 0) ? (int)$dbPort : 3308,
     'db'   => (is_string($dbName) && trim($dbName) !== '') ? trim($dbName) : 'drillifx',
     'user' => (is_string($dbUser) && trim($dbUser) !== '') ? trim($dbUser) : 'root',
-    'pass' => is_string($dbPass) ? $dbPass : '',
+    'pass' => is_string($dbPass) ? $dbPass : 'secret',
     'charset' => (is_string($dbCharset) && trim($dbCharset) !== '') ? trim($dbCharset) : 'utf8mb4',
 ];

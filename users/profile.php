@@ -2,7 +2,22 @@
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/auth.php';
 $u = require_login();
-$tierName = $u['tier_name'] ?? 'Free Tier';
+$pdo = db();
+// Determine effective tier: upgrade option first, then tiers
+$uoId = (int)($u['upgrade_option_id'] ?? 0);
+$uo = null;
+if (!empty($uoId)) {
+    $st2 = $pdo->prepare('SELECT * FROM upgrade_options WHERE id = ? AND active = 1 LIMIT 1');
+    $st2->execute([$uoId]);
+    $uo = $st2->fetch();
+}
+if (!empty($uo)) {
+    $tierName = $uo['display_name'] ?? 'Beginner';
+    $displayRating = $uo['display_rating'] ?? '⭐⭐';
+} else {
+    $tierName = $u['tier_name'] ?? 'Free Tier';
+    $displayRating = '';
+}
 $initial = strtoupper(substr($u['username'] ?? 'U', 0, 1));
 $st = db()->prepare('SELECT COUNT(*) c FROM referrals WHERE referrer_id=?'); $st->execute([(int)$u['id']]); $refCount = (int)$st->fetch()['c'];
 $hasPin = !empty($u['pin_hash']);
